@@ -30,9 +30,16 @@ def target_factory(filename: str, default_port: int, encoding: str = "utf-8"):
     return wrapper
 
 
-def combo_factory(filename: str, delim: str = "::", encoding="utf-8"):
+def line_factory(filename: str, encoding: str = "utf-8"):
     def wrapper():
-        for creds in read_lines_delim(filename, delim, encoding):
+        for line in read_lines(filename, encoding):
+            yield line
+    return wrapper
+
+
+def combo_factory(filename: str, delim: str = "::", encoding: str = "utf-8"):
+    def wrapper():
+        for creds in read_lines_delim(filename, delim, 2, encoding):
             yield creds
     return wrapper
 
