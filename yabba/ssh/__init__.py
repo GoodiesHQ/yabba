@@ -1,5 +1,6 @@
 from asyncio_pool import AioPool
-from yabba.utils import trycast, C
+from asyncio_pool.results import getres
+from yabba.utils import C, target_tasks, trycast
 import asyncssh
 import sys
 
@@ -39,17 +40,7 @@ async def brute(target_factory,
     :param verbose: print failed messages
     :return:
     """
-    if combo_factory:
-        data = ((*target, *combo)
-                for combo in combo_factory()
-                for target in target_factory())
-    elif username_factory and password_factory:
-        data = ((*target, username, password)
-                for username in username_factory()
-                for password in password_factory()
-                for target in target_factory())
-    else:
-        raise ValueError("Either a combo factory or username/password factory pair must be provided")
+    tasks = target_tasks(target_factory, combo_factory, username_factory, password_factory)
 
     async with AioPool(pool_size) as pool:
         suc_files = [sys.stdout]
@@ -59,8 +50,7 @@ async def brute(target_factory,
             f = open(output, "w")
             suc_files.append(f)
 
-        from asyncio_pool.results import getres
-        async for (val, err) in pool.itermap(worker, data, timeout=timeout, get_result=getres.pair):
+        async for (val, err) in pool.itermap(worker, tasks, timeout=timeout, get_result=getres.pair):
             if err:
                 print("ERROR")
                 print(err)
