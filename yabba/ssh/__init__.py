@@ -9,8 +9,9 @@ async def worker(args):
     host, port, username, password = args
     try:
         auth = dict(username=username, password=password, known_hosts=None)
-        (conn, client) = await asyncssh.create_connection(None, host, port, **auth)
-    except (asyncssh.Error, ConnectionError, ConnectionResetError, OSError, TimeoutError):
+        (conn, _) = await asyncssh.create_connection(None, host, port, **auth)
+    except (asyncssh.Error, ConnectionError, ConnectionResetError, OSError,
+            TimeoutError):
         return None, args
     except Exception as e:
         import traceback
